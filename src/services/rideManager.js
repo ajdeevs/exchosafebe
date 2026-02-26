@@ -84,7 +84,7 @@ class RideManager {
     });
   }
 
-  async handleDisconnect(socket) {
+  async handleDisconnect(socket, code, reason) {
     const meta = this.socketIndex.get(socket);
     if (!meta) return;
     const { rideId, role } = meta;
@@ -107,7 +107,10 @@ class RideManager {
         rideId,
         role: ROLE_PASSENGER
       });
-      await sosService.triggerSOS(rideId, 'passenger_disconnect');
+      // If code is not 1000, trigger SOS
+      if (code !== 1000) {
+        await sosService.triggerSOS(rideId, 'passenger_disconnect');
+      }
     }
 
     if (role === ROLE_CAB_DEVICE && ride.cabSocket === socket) {
@@ -117,7 +120,10 @@ class RideManager {
         rideId,
         role: ROLE_CAB_DEVICE
       });
-      await sosService.triggerSOS(rideId, 'cab_disconnect');
+      // If code is not 1000, trigger SOS
+      if (code !== 1000) {
+        await sosService.triggerSOS(rideId, 'cab_disconnect');
+      }
     }
   }
 

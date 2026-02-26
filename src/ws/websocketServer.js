@@ -60,9 +60,9 @@ module.exports = function initWebSocketServer(httpServer){
       }
     });
 
-    socket.on('close', async () => {
+    socket.on('close', async (code, reason) => {
       try {
-        await rideManager.handleDisconnect(socket);
+        await rideManager.handleDisconnect(socket, code, reason);
       } catch (err) {
         console.error('Error handling disconnect:', err);
       }

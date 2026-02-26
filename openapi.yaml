@@ -178,6 +178,38 @@ paths:
         '401':
           description: Unauthorized
 
+  /auth/end-ride:
+    post:
+      summary: End Active Ride
+      description: Gracefully ends a ride without triggering SOS alarms and cleans up real-time socket connections.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rideId
+              properties:
+                rideId:
+                  type: string
+                  description: "The UUID of the ride being completed"
+      responses:
+        '200':
+          description: Ride ended successfully
+        '400':
+          description: Bad Request (Missing rideId)
+        '401':
+          description: Unauthorized (Invalid token)
+        '403':
+          description: Forbidden (User not authorized to end this ride)
+        '404':
+          description: Not Found (Ride not found)
+        '500':
+          description: Server Error
+
   /upload/passenger-image:
     post:
       summary: Upload Passenger Image
