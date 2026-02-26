@@ -1,0 +1,5 @@
+module.exports = {
+  ROLE_PASSENGER: 'PASSENGER',
+  ROLE_CAB_DEVICE: 'CAB_DEVICE',
+  ROLE_POLICE: 'POLICE'
+};

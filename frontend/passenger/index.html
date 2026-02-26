@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EchoSafe - Passenger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top left, #0f172a, #020617 55%);
+        color: #e5e7eb;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem;
+      }
+      .card {
+        width: 100%;
+        max-width: 480px;
+        border-radius: 1.25rem;
+        background: rgba(15, 23, 42, 0.96);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+        padding: 1.5rem 1.75rem 1.75rem 1.75rem;
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+      }
+      .title {
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+      .subtitle {
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+      .badge {
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .badge.idle {
+        background: rgba(148, 163, 184, 0.25);
+        color: #e5e7eb;
+      }
+      .badge.ok {
+        background: rgba(22, 163, 74, 0.25);
+        color: #bbf7d0;
+      }
+      .badge.err {
+        background: rgba(239, 68, 68, 0.25);
+        color: #fecaca;
+      }
+      .input-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .input-group {
+        flex: 1;
+      }
+      label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+      input[type="text"] {
+        width: 100%;
+        border-radius: 0.7rem;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+        padding: 0.45rem 0.6rem;
+        font-size: 0.85rem;
+        outline: none;
+      }
+      input[type="text"]:focus {
+        border-color: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.6);
+      }
+      .hint {
+        font-size: 0.7rem;
+        opacity: 0.75;
+        margin-bottom: 0.25rem;
+      }
+      .buttons-row {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0.6rem 0 0.3rem 0;
+      }
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        background: rgba(30, 64, 175, 0.9);
+        color: #e5e7eb;
+        transition: background 0.15s ease, transform 0.05s ease;
+      }
+      button.secondary {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+      }
+      button.danger {
+        background: linear-gradient(to right, #dc2626, #b91c1c);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+        transform: none;
+      }
+      button:not(:disabled):active {
+        transform: scale(0.98);
+      }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        margin-bottom: 0.5rem;
+      }
+      .status-dot {
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+      }
+      .status-text {
+        opacity: 0.8;
+      }
+      .log {
+        margin-top: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(31, 41, 55, 0.9);
+        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), transparent 60%),
+          rgba(15, 23, 42, 0.95);
+        padding: 0.5rem 0.6rem;
+        max-height: 10rem;
+        overflow-y: auto;
+        font-family: "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.75rem;
+      }
+      .log-line {
+        opacity: 0.9;
+      }
+      .log-line time {
+        opacity: 0.7;
+      }
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="title">EchoSafe · Passenger</div>
+          <div class="subtitle">Live-protected ride tunnel</div>
+        </div>
+        <span id="ws-status" class="badge idle">Idle</span>
+      </div>
+
+      <div class="input-row">
+        <div class="input-group">
+          <label for="ride-id">Ride ID</label>
+          <input id="ride-id" type="text" placeholder="e.g. ride123" />
+        </div>
+        <div class="input-group">
+          <label for="passenger-id">Your ID</label>
+          <input id="passenger-id" type="text" placeholder="e.g. passenger-1" />
+        </div>
+      </div>
+      <div class="hint">IDs are used only to mint a JWT for this demo.</div>
+
+      <div class="buttons-row">
+        <button id="btn-connect">Start ride & connect</button>
+        <button id="btn-disconnect" class="secondary" disabled>Disconnect</button>
+      </div>
+
+      <div class="status-pill" id="geo-status">
+        <div class="status-dot"></div>
+        <span class="status-text" id="geo-label">Waiting for GPS…</span>
+      </div>
+
+      <div class="buttons-row">
+        <button id="btn-send-location" class="secondary" disabled>Send location once</button>
+        <button id="btn-sos" class="danger" disabled>Trigger SOS</button>
+      </div>
+
+      <div class="meta-row">
+        <span id="meta-heartbeat">Heartbeat: idle</span>
+        <span id="meta-location">Last location: —</span>
+      </div>
+
+      <div class="log" id="log"></div>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+  </html>
+

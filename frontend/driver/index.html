@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EchoSafe - Driver SAFE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top left, #020617, #020617 40%, #020617 100%);
+        color: #e5e7eb;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem;
+      }
+      .shell {
+        width: 100%;
+        max-width: 840px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 1px;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: rgba(148, 163, 184, 0.25);
+        box-shadow: 0 24px 90px rgba(15, 23, 42, 0.95);
+      }
+      .panel {
+        background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.2), transparent 55%),
+          rgba(15, 23, 42, 0.98);
+        padding: 1.4rem 1.6rem 1.5rem 1.6rem;
+      }
+      .panel.right {
+        background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.15), transparent 55%),
+          rgba(15, 23, 42, 0.98);
+      }
+      h1 {
+        font-size: 1.35rem;
+        margin: 0;
+      }
+      .subtitle {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-top: 0.15rem;
+      }
+      .tagline {
+        margin-top: 0.6rem;
+        font-size: 0.8rem;
+        opacity: 0.85;
+      }
+      .tabs {
+        display: inline-flex;
+        margin-top: 0.8rem;
+        border-radius: 999px;
+        padding: 0.15rem;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(55, 65, 81, 0.9);
+      }
+      .tabs button {
+        border: none;
+        background: transparent;
+        padding: 0.3rem 0.9rem;
+        font-size: 0.75rem;
+        color: #9ca3af;
+        cursor: pointer;
+        border-radius: 999px;
+      }
+      .tabs button.active {
+        background: rgba(37, 99, 235, 0.9);
+        color: #e5e7eb;
+      }
+      form {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem 0.8rem;
+      }
+      form .full {
+        grid-column: 1 / -1;
+      }
+      label {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.85;
+        margin-bottom: 0.18rem;
+      }
+      input[type='text'],
+      input[type='email'],
+      input[type='password'] {
+        width: 100%;
+        border-radius: 0.7rem;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(15, 23, 42, 0.96);
+        color: #e5e7eb;
+        padding: 0.45rem 0.6rem;
+        font-size: 0.82rem;
+        outline: none;
+      }
+      input[type='text']:focus,
+      input[type='email']:focus,
+      input[type='password']:focus {
+        border-color: rgba(59, 130, 246, 0.85);
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.75);
+      }
+      .hint {
+        grid-column: 1 / -1;
+        font-size: 0.72rem;
+        opacity: 0.75;
+        margin-top: -0.35rem;
+      }
+      .actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.1rem;
+      }
+      .btn {
+        border-radius: 999px;
+        border: none;
+        padding: 0.5rem 1.1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        background: rgba(37, 99, 235, 0.95);
+        color: #e5e7eb;
+      }
+      .btn.outline {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.7);
+      }
+      .status-dot {
+        width: 0.42rem;
+        height: 0.42rem;
+        border-radius: 999px;
+        background: #22c55e;
+      }
+      .status-chip.error .status-dot {
+        background: #ef4444;
+      }
+      .status-chip span {
+        opacity: 0.85;
+      }
+      .meta {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-bottom: 0.5rem;
+      }
+      .token-box {
+        border-radius: 0.75rem;
+        border: 1px solid rgba(55, 65, 81, 0.95);
+        background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.2), transparent 55%),
+          rgba(15, 23, 42, 0.96);
+        padding: 0.6rem 0.7rem 0.5rem 0.7rem;
+        font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.72rem;
+        max-height: 8.5rem;
+        overflow-y: auto;
+      }
+      .token-box code {
+        word-wrap: break-word;
+        word-break: break-all;
+      }
+      .small-label {
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+      .ws-snippet {
+        margin-top: 0.45rem;
+        border-radius: 0.75rem;
+        border: 1px dashed rgba(55, 65, 81, 0.9);
+        padding: 0.5rem 0.6rem;
+        font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.72rem;
+      }
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .panel.right {
+          border-top: 1px solid rgba(31, 41, 55, 0.95);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="panel">
+        <h1>EchoSafe · Driver SAFE</h1>
+        <p class="subtitle">Register your cab and identity for SOS verification.</p>
+        <p class="tagline">Your licence and plate are only used for ride safety and law enforcement.</p>
+
+        <div class="tabs">
+          <button id="tab-signup" class="active" type="button">Sign up</button>
+          <button id="tab-signin" type="button">Sign in</button>
+        </div>
+
+        <form id="form-signup">
+          <div class="full">
+            <label for="su-email">Email</label>
+            <input id="su-email" type="email" autocomplete="email" placeholder="driver@example.com" />
+          </div>
+          <div class="full">
+            <label for="su-password">Password</label>
+            <input id="su-password" type="password" autocomplete="new-password" placeholder="Strong password" />
+          </div>
+          <div class="full">
+            <label for="su-name">Full name</label>
+            <input id="su-name" type="text" placeholder="Legal name on licence" />
+          </div>
+          <div>
+            <label for="su-license-number">Driving licence number</label>
+            <input id="su-license-number" type="text" placeholder="DL-XXXX-YYYY" />
+          </div>
+          <div>
+            <label for="su-license-plate">Licence plate</label>
+            <input id="su-license-plate" type="text" placeholder="KA01AB1234" />
+          </div>
+          <div class="full">
+            <label for="su-device-id">Cab device ID (optional)</label>
+            <input id="su-device-id" type="text" placeholder="IMEI or internal device ID" />
+          </div>
+          <p class="hint">
+            On sign up we create a verified driver profile and a cab device token used by the in-car device for
+            WebSocket safety checks.
+          </p>
+          <div class="actions">
+            <button id="btn-signup" class="btn" type="button">Create SAFE profile</button>
+            <span id="signup-status" class="status-chip">
+              <span class="status-dot"></span><span>Idle</span>
+            </span>
+          </div>
+        </form>
+
+        <form id="form-signin" style="display: none;">
+          <div class="full">
+            <label for="si-email">Email</label>
+            <input id="si-email" type="email" autocomplete="email" placeholder="driver@example.com" />
+          </div>
+          <div class="full">
+            <label for="si-password">Password</label>
+            <input id="si-password" type="password" autocomplete="current-password" placeholder="Password" />
+          </div>
+          <p class="hint">Sign back in on a new device and we will issue a fresh cab device token.</p>
+          <div class="actions">
+            <button id="btn-signin" class="btn outline" type="button">Sign in</button>
+            <span id="signin-status" class="status-chip">
+              <span class="status-dot"></span><span>Idle</span>
+            </span>
+          </div>
+        </form>
+      </div>
+      <div class="panel right">
+        <p class="meta">
+          <strong>Cab device token</strong> – use this JWT on the in-car device when connecting as
+          <code>CAB_DEVICE</code>.
+        </p>
+        <div class="token-box" id="token-box">
+          <span class="small-label">Token will appear here after signup / signin.</span>
+        </div>
+        <p class="meta" style="margin-top: 0.7rem;">
+          <strong>Example REGISTER payload for device:</strong>
+        </p>
+        <div class="ws-snippet" id="ws-snippet">
+          <span class="small-label">Waiting for driver profile…</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+  </html>
+

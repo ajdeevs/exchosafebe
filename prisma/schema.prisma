@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RideStatus {
+  BOOKED
+  ACTIVE
+  RISK_FLAGGED
+  SOS_ACTIVE
+  RESOLVED
+}
+
+model Ride {
+  id           String      @id @default(uuid())
+  passengerId  String
+  driverId     String
+  cabDeviceId  String
+  status       RideStatus  @default(BOOKED)
+  createdAt    DateTime    @default(now())
+  sosEvents    SOS[]
+}
+
+model SOS {
+  id        String   @id @default(uuid())
+  rideId    String
+  reason    String
+  createdAt DateTime @default(now())
+
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  PASSENGER
+  DRIVER
+  POLICE
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime      @default(now())
+
+  driverProfile DriverProfile?
+}
+
+model DriverProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  fullName      String
+  licenseNumber String
+  licensePlate  String
+  cabDeviceId   String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
