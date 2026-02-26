@@ -6,6 +6,7 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const fs = require('fs');
 const YAML = require('yaml');
+const cors = require('cors');
 
 const uploadRoutes = require('./routes/uploadRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -20,6 +21,7 @@ const morgan = require('morgan');
 app.use(morgan('dev'));
 
 app.use(express.json());
+app.use(cors());
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use(`/${uploadDir}`, express.static(path.join(process.cwd(), uploadDir)));
