@@ -8,11 +8,9 @@ datasource db {
 }
 
 enum RideStatus {
-  BOOKED
-  ACTIVE
-  RISK_FLAGGED
-  SOS_ACTIVE
-  RESOLVED
+  STARTED
+  IN_PROGRESS
+  ENDED
 }
 
 model Ride {
@@ -20,17 +18,23 @@ model Ride {
   passengerId String
   driverId    String
   cabDeviceId String
-  status      RideStatus @default(BOOKED)
+  status      RideStatus @default(STARTED)
   createdAt   DateTime   @default(now())
-  sosEvents   SOS[]
+  sosEvents   SosEvent[]
 }
 
-model SOS {
-  id        String   @id @default(uuid())
+enum SosStatus {
+  ACTIVE
+  RESOLVED
+}
+
+model SosEvent {
+  id        String    @id @default(uuid())
   rideId    String
   reason    String
   imageUrl  String?
-  createdAt DateTime @default(now())
+  status    SosStatus @default(ACTIVE)
+  createdAt DateTime  @default(now())
 
   ride Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
 }

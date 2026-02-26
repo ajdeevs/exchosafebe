@@ -337,4 +337,49 @@ router.post('/police/rides/resolve', async (req, res) => {
   }
 });
 
+// POLICE DASHBOARD - RESOLVE A SPECIFIC SOS EVENT
+router.post('/police/sos/resolve', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Missing token' });
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (!payload || !payload.sub || payload.role !== ROLE_POLICE) {
+      return res.status(403).json({ error: 'Only police can resolve SOS events' });
+    }
+
+    const { sosId } = req.body || {};
+    if (!sosId) {
+      return res.status(400).json({ error: 'sosId is required' });
+    }
+
+    // Update the specific SOS event status to RESOLVED
+    const updatedSos = await prisma.sosEvent.update({
+      where: { id: sosId },
+      data: { status: 'RESOLVED' }
+    });
+
+    return res.status(200).json({
+      message: 'SOS resolved successfully',
+      sos: updatedSos
+    });
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'SOS event not found' });
+    }
+    console.error('Police resolve SOS error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
