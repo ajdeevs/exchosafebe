@@ -225,7 +225,7 @@ router.post('/ride/create', async (req, res) => {
         passengerId: payload.sub,
         driverId,
         cabDeviceId,
-        status: 'BOOKED'
+        status: 'STARTED'
       }
     });
 
