@@ -209,7 +209,8 @@ module.exports = function initWebSocketServer(httpServer){
 
       case CLIENT_EVENTS.SOS_RAISED:
         if (role === ROLE_PASSENGER || role === ROLE_CAB_DEVICE) {
-          await sosService.triggerSOS(rideId, 'manual_sos');
+          const imageUrl = payload && payload.imageUrl ? payload.imageUrl : null;
+          await sosService.triggerSOS(rideId, 'manual_sos', imageUrl);
         } else {
           socket.send(
             JSON.stringify({

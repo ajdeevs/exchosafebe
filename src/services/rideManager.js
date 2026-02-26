@@ -3,6 +3,7 @@ const { ROLE_PASSENGER, ROLE_CAB_DEVICE, ROLE_POLICE } = require('../constants/r
 const heartbeatMonitor = require('./heartbeatMonitor');
 const sosService = require('./sosService');
 const eventBus = require('./eventBus');
+const prisma = require('../prismaClient');
 
 class RideManager {
   constructor() {
@@ -110,6 +111,16 @@ class RideManager {
       // If code is not 1000, trigger SOS
       if (code !== 1000) {
         await sosService.triggerSOS(rideId, 'passenger_disconnect');
+      } else {
+        // Normal disconnect, update DB to closed/resolved
+        try {
+          await prisma.ride.update({
+            where: { id: rideId },
+            data: { status: 'RESOLVED' }
+          });
+        } catch (e) {
+          console.error('Failed to resolve ride on disconnect:', e);
+        }
       }
     }
 
@@ -123,6 +134,16 @@ class RideManager {
       // If code is not 1000, trigger SOS
       if (code !== 1000) {
         await sosService.triggerSOS(rideId, 'cab_disconnect');
+      } else {
+        // Normal disconnect, update DB to closed/resolved
+        try {
+          await prisma.ride.update({
+            where: { id: rideId },
+            data: { status: 'RESOLVED' }
+          });
+        } catch (e) {
+          console.error('Failed to resolve ride on cab disconnect:', e);
+        }
       }
     }
   }

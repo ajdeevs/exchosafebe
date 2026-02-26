@@ -3,7 +3,7 @@ const eventBus = require('./eventBus');
 const { SERVER_EVENTS } = require('../constants/events');
 
 class SosService {
-  async triggerSOS(rideId, reason) {
+  async triggerSOS(rideId, reason, imageUrl = null) {
     if (!rideId) {
       console.warn('Attempted to trigger SOS without rideId');
       return;
@@ -25,21 +25,23 @@ class SosService {
       const sos = await prisma.sOS.create({
         data: {
           rideId: ride.id,
-          reason
+          reason,
+          imageUrl
         }
       });
 
-      this.notifyPolice(rideId, reason, sos.id);
+      this.notifyPolice(rideId, reason, sos.id, imageUrl);
     } catch (err) {
       console.error('Failed to trigger SOS:', err);
     }
   }
 
-  notifyPolice(rideId, reason, sosId) {
+  notifyPolice(rideId, reason, sosId, imageUrl = null) {
     eventBus.emit(SERVER_EVENTS.SOS_TRIGGERED, {
       rideId,
       reason,
-      sosId
+      sosId,
+      imageUrl
     });
   }
 

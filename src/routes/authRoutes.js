@@ -243,4 +243,47 @@ router.post('/ride/create', async (req, res) => {
   }
 });
 
+// POLICE DASHBOARD - GET ACTIVE RIDES AND TRACES
+router.get('/police/rides', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Missing token' });
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (!payload || !payload.sub || payload.role !== ROLE_POLICE) {
+      return res.status(403).json({ error: 'Only police can view all active rides' });
+    }
+
+    // Fetch all rides that are not resolved, including any SOS records and their image URLs
+    const activeRides = await prisma.ride.findMany({
+      where: {
+        status: {
+          not: 'RESOLVED'
+        }
+      },
+      include: {
+        sosEvents: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return res.status(200).json({ rides: activeRides });
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    console.error('Police fetch active rides error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

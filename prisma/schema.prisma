@@ -16,22 +16,23 @@ enum RideStatus {
 }
 
 model Ride {
-  id           String      @id @default(uuid())
-  passengerId  String
-  driverId     String
-  cabDeviceId  String
-  status       RideStatus  @default(BOOKED)
-  createdAt    DateTime    @default(now())
-  sosEvents    SOS[]
+  id          String     @id @default(uuid())
+  passengerId String
+  driverId    String
+  cabDeviceId String
+  status      RideStatus @default(BOOKED)
+  createdAt   DateTime   @default(now())
+  sosEvents   SOS[]
 }
 
 model SOS {
   id        String   @id @default(uuid())
   rideId    String
   reason    String
+  imageUrl  String?
   createdAt DateTime @default(now())
 
-  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  ride Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
@@ -41,11 +42,11 @@ enum UserRole {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
   passwordHash String
   role         UserRole
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime @default(now())
 
   driverProfile DriverProfile?
 }
