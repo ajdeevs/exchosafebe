@@ -15,6 +15,10 @@ const prisma = require('./prismaClient');
 const app = express();
 const port = process.env.PORT || 4000;
 
+// Request logger
+const morgan = require('morgan');
+app.use(morgan('dev'));
+
 app.use(express.json());
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
