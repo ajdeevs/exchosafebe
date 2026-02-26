@@ -12,21 +12,22 @@ class SosService {
     try {
       const ride = await prisma.ride.upsert({
         where: { id: rideId },
-        update: { status: 'SOS_ACTIVE' },
+        update: { status: 'IN_PROGRESS' },
         create: {
           id: rideId,
           passengerId: 'unknown',
           driverId: 'unknown',
           cabDeviceId: 'unknown',
-          status: 'SOS_ACTIVE'
+          status: 'STARTED'
         }
       });
 
-      const sos = await prisma.sOS.create({
+      const sos = await prisma.sosEvent.create({
         data: {
           rideId: ride.id,
           reason,
-          imageUrl
+          imageUrl,
+          status: 'ACTIVE'
         }
       });
 

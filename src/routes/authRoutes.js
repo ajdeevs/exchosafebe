@@ -261,11 +261,11 @@ router.get('/police/rides', async (req, res) => {
       return res.status(403).json({ error: 'Only police can view all active rides' });
     }
 
-    // Fetch all rides that are not resolved, including any SOS records and their image URLs
+    // Fetch all rides that are not explicitly ended, including any SOS records and their image URLs
     const activeRides = await prisma.ride.findMany({
       where: {
         status: {
-          not: 'RESOLVED'
+          not: 'ENDED'
         }
       },
       include: {
@@ -282,6 +282,57 @@ router.get('/police/rides', async (req, res) => {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
     console.error('Police fetch active rides error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POLICE DASHBOARD - RESOLVE A RIDE/SOS
+router.post('/police/rides/resolve', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Missing token' });
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (!payload || !payload.sub || payload.role !== ROLE_POLICE) {
+      return res.status(403).json({ error: 'Only police can resolve rides' });
+    }
+
+    const { rideId } = req.body || {};
+    if (!rideId) {
+      return res.status(400).json({ error: 'rideId is required' });
+    }
+
+    // Update the ride status to ENDED
+    const updatedRide = await prisma.ride.update({
+      where: { id: rideId },
+      data: { status: 'ENDED' }
+    });
+
+    // Automatically resolve any active SOS events tied to this ride
+    await prisma.sosEvent.updateMany({
+      where: { rideId: rideId, status: 'ACTIVE' },
+      data: { status: 'RESOLVED' }
+    });
+
+    return res.status(200).json({
+      message: 'Ride and tied SOS events resolved successfully',
+      ride: updatedRide
+    });
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'Ride not found' });
+    }
+    console.error('Police resolve ride error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
