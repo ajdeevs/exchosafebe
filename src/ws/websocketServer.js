@@ -17,7 +17,7 @@ function verifyToken(token) {
   };
 }
 
-module.exports = function initWebSocketServer(httpServer) {
+module.exports = function initWebSocketServer(httpServer){
   const wss = new WebSocket.Server({ server: httpServer });
 
   wss.on('connection', (socket) => {

@@ -10,7 +10,7 @@ const WebSocket = require('ws');
 const http = require('http');
 const https = require('https');
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://exchosafebe.onrender.com';
 
 function log(msg, obj) {
   const ts = new Date().toISOString();

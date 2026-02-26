@@ -1,0 +1,279 @@
+openapi: 3.0.0
+info:
+  title: EchoSafe API
+  description: EchoSafe central backend server API documentation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000
+    description: Local server
+  - url: https://exchosafebe.onrender.com
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the status of the API and database.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  db:
+                    type: string
+        '500':
+          description: Server Error
+
+  /auth/token:
+    post:
+      summary: Generate Test Token
+      description: Simple token issuer for testing and internal tools.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - role
+              properties:
+                userId:
+                  type: string
+                role:
+                  type: string
+                  enum: [PASSENGER, DRIVER, POLICE]
+      responses:
+        '201':
+          description: Token created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Bad Request
+
+  /auth/passenger/signup:
+    post:
+      summary: Passenger Signup
+      description: Registers a new passenger.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Bad Request
+        '409':
+          description: Conflict (Email already exists)
+
+  /auth/passenger/signin:
+    post:
+      summary: Passenger Signin
+      description: Authenticates a passenger.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+  /auth/driver/signup:
+    post:
+      summary: Driver Signup
+      description: Registers a new driver and driver profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - fullName
+                - licenseNumber
+                - licensePlate
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                fullName:
+                  type: string
+                licenseNumber:
+                  type: string
+                licensePlate:
+                  type: string
+                cabDeviceId:
+                  type: string
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Bad Request
+        '409':
+          description: Conflict (Email already exists)
+
+  /auth/driver/signin:
+    post:
+      summary: Driver Signin
+      description: Authenticates a driver.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+  /upload/passenger-image:
+    post:
+      summary: Upload Passenger Image
+      description: Uploads a snapshot taken by the passenger's app during the ride.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - rideId
+                - image
+              properties:
+                rideId:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Image uploaded successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server Error
+
+  /upload/cab-snapshot:
+    post:
+      summary: Upload Cab Snapshot
+      description: Uploads a snapshot captured by the in-cab camera.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - rideId
+                - image
+              properties:
+                rideId:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Snapshot uploaded successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server Error
+
+  /upload/audio-snippet:
+    post:
+      summary: Upload Audio Snippet
+      description: Uploads an audio recording from an SOS event or cab device.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - rideId
+                - audio
+              properties:
+                rideId:
+                  type: string
+                audio:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Audio snippet uploaded successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server Error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

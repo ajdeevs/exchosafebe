@@ -3,6 +3,9 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const fs = require('fs');
+const YAML = require('yaml');
 
 const uploadRoutes = require('./routes/uploadRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -40,6 +43,11 @@ app.use(
     index: 'index.html'
   })
 );
+
+const file = fs.readFileSync(path.join(process.cwd(), 'openapi.yaml'), 'utf8');
+const swaggerDocument = YAML.parse(file);
+// Serve the Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Issue JWTs for testing / internal tools
 app.use('/auth', authRoutes);
