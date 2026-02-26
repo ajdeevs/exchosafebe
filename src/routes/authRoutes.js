@@ -196,4 +196,51 @@ router.post('/driver/signin', async (req, res) => {
   }
 });
 
+// INITIALIZE RIDE
+router.post('/ride/create', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Missing token' });
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (!payload || !payload.sub || payload.role !== ROLE_PASSENGER) {
+      return res.status(403).json({ error: 'Only passengers can create rides' });
+    }
+
+    const { driverId, cabDeviceId } = req.body || {};
+    if (!driverId || !cabDeviceId) {
+      return res.status(400).json({ error: 'driverId and cabDeviceId are required' });
+    }
+
+    // Create the active ride in the database
+    const newRide = await prisma.ride.create({
+      data: {
+        passengerId: payload.sub,
+        driverId,
+        cabDeviceId,
+        status: 'BOOKED'
+      }
+    });
+
+    return res.status(201).json({
+      message: 'Ride created successfully',
+      ride: newRide
+    });
+
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    console.error('Create ride error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
