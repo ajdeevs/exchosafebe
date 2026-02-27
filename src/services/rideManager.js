@@ -10,6 +10,7 @@ class RideManager {
     this.rides = new Map();
     this.socketIndex = new Map();
     this.policeSockets = new Set();
+    this.idleCabSockets = new Map(); // cabDeviceId -> socket
 
     eventBus.on(SERVER_EVENTS.SOS_TRIGGERED, (payload) => {
       this.broadcastToPolice(SERVER_EVENTS.SOS_TRIGGERED, payload);
@@ -68,6 +69,26 @@ class RideManager {
     this.socketIndex.set(socket, { rideId: null, role: ROLE_POLICE, userId });
   }
 
+  registerIdleCab(cabDeviceId, socket) {
+    // A Cab is online but has no active ride yet.
+    this.idleCabSockets.set(cabDeviceId, socket);
+    this.socketIndex.set(socket, { rideId: null, role: ROLE_CAB_DEVICE, userId: cabDeviceId });
+  }
+
+  notifyCabOfNewRide(cabDeviceId, rideId) {
+    const socket = this.idleCabSockets.get(cabDeviceId);
+    if (socket && socket.readyState === socket.OPEN) {
+      // Cab is immediately hooked into the ride
+      this.attachCabSocket(rideId, socket, cabDeviceId);
+      this.idleCabSockets.delete(cabDeviceId);
+
+      socket.send(JSON.stringify({
+        type: 'NEW_RIDE_ASSIGNED',
+        payload: { rideId }
+      }));
+    }
+  }
+
   updateLocation(rideId, role, location) {
     const ride = this.rides.get(rideId);
     if (!ride) return;
@@ -91,6 +112,12 @@ class RideManager {
     const { rideId, role } = meta;
 
     this.socketIndex.delete(socket);
+
+    if (role === ROLE_CAB_DEVICE && !rideId) {
+      // It was an idle cab device that disconnected
+      this.idleCabSockets.delete(meta.userId);
+      return;
+    }
 
     if (role === ROLE_POLICE) {
       this.policeSockets.delete(socket);

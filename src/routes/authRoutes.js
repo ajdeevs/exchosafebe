@@ -229,6 +229,11 @@ router.post('/ride/create', async (req, res) => {
       }
     });
 
+    // Automatically push this newly minted Ride ID to the physical Cab Device
+    // if it is already idling on the WebSocket server waiting for a ride assignment
+    const rideManager = require('../services/rideManager');
+    rideManager.notifyCabOfNewRide(cabDeviceId, newRide.id);
+
     return res.status(201).json({
       message: 'Ride created successfully',
       ride: newRide

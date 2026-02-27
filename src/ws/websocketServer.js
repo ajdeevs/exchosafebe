@@ -160,23 +160,20 @@ module.exports = function initWebSocketServer(httpServer){
           });
           if (activeRide) {
             rideId = activeRide.id;
+            rideManager.attachCabSocket(rideId, socket, user.id);
           } else {
-            socket.send(
-              JSON.stringify({
-                type: SERVER_EVENTS.ERROR,
-                payload: { message: 'No active ride found for this cab device' }
-              })
-            );
-            socket.close();
-            return;
+            // No active ride currently, but keep them connected as an "Idle Cab"
+            // so we can push a rideId to them when one is booked.
+            rideManager.registerIdleCab(user.id, socket);
           }
         } catch (dbErr) {
           console.error('Error finding cab active ride:', dbErr);
           socket.close();
           return;
         }
+      } else {
+        rideManager.attachCabSocket(rideId, socket, user.id);
       }
-      rideManager.attachCabSocket(rideId, socket, user.id);
     } else if (role === ROLE_POLICE) {
       rideManager.attachPoliceSocket(socket, user.id);
     } else {
