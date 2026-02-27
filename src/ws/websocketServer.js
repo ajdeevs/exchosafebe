@@ -109,7 +109,32 @@ module.exports = function initWebSocketServer(httpServer){
     }
 
     if (role === ROLE_PASSENGER || role === ROLE_CAB_DEVICE) {
-      if (!rideId) {
+      if (!rideId && role === ROLE_PASSENGER) {
+        try {
+          const activeRide = await require('../prismaClient').ride.findFirst({
+            where: {
+              passengerId: user.id,
+              status: { in: ['STARTED', 'IN_PROGRESS'] }
+            }
+          });
+          if (activeRide) {
+            rideId = activeRide.id;
+          } else {
+             socket.send(
+               JSON.stringify({
+                 type: SERVER_EVENTS.ERROR,
+                 payload: { message: 'No active ride found for this passenger' }
+               })
+             );
+             socket.close();
+             return;
+          }
+        } catch (dbErr) {
+          console.error('Error finding passenger active ride:', dbErr);
+          socket.close();
+          return;
+        }
+      } else if (!rideId && role !== ROLE_CAB_DEVICE) {
         socket.send(
           JSON.stringify({
             type: SERVER_EVENTS.ERROR,
@@ -124,6 +149,33 @@ module.exports = function initWebSocketServer(httpServer){
     if (role === ROLE_PASSENGER) {
       rideManager.attachPassengerSocket(rideId, socket, user.id);
     } else if (role === ROLE_CAB_DEVICE) {
+      if (!rideId) {
+        // Cab devices might just connect and look for their assigned active ride
+        try {
+          const activeRide = await require('../prismaClient').ride.findFirst({
+            where: {
+              cabDeviceId: user.id,
+              status: { in: ['STARTED', 'IN_PROGRESS'] }
+            }
+          });
+          if (activeRide) {
+            rideId = activeRide.id;
+          } else {
+            socket.send(
+              JSON.stringify({
+                type: SERVER_EVENTS.ERROR,
+                payload: { message: 'No active ride found for this cab device' }
+              })
+            );
+            socket.close();
+            return;
+          }
+        } catch (dbErr) {
+          console.error('Error finding cab active ride:', dbErr);
+          socket.close();
+          return;
+        }
+      }
       rideManager.attachCabSocket(rideId, socket, user.id);
     } else if (role === ROLE_POLICE) {
       rideManager.attachPoliceSocket(socket, user.id);

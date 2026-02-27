@@ -112,12 +112,20 @@ class RideManager {
       if (code !== 1000) {
         await sosService.triggerSOS(rideId, 'passenger_disconnect');
       } else {
-        // Normal disconnect, update DB to closed/resolved
+        // Normal disconnect, update DB to ended
         try {
           await prisma.ride.update({
             where: { id: rideId },
+            data: { status: 'ENDED' }
+          });
+          // Also automatically resolve any SOS events connected to this ride
+          await prisma.sosEvent.updateMany({
+            where: { rideId: rideId, status: 'ACTIVE' },
             data: { status: 'RESOLVED' }
           });
+          
+          // Broadcast to Police that this ride has naturally concluded 
+          this.broadcastToPolice('RIDE_ENDED_PEACEFULLY', { rideId });
         } catch (e) {
           console.error('Failed to resolve ride on disconnect:', e);
         }
@@ -135,11 +143,11 @@ class RideManager {
       if (code !== 1000) {
         await sosService.triggerSOS(rideId, 'cab_disconnect');
       } else {
-        // Normal disconnect, update DB to closed/resolved
+        // Normal disconnect, update DB to ended
         try {
           await prisma.ride.update({
             where: { id: rideId },
-            data: { status: 'RESOLVED' }
+            data: { status: 'ENDED' }
           });
         } catch (e) {
           console.error('Failed to resolve ride on cab disconnect:', e);
